@@ -1,0 +1,334 @@
+---
+title: "Final Project"
+author: "Sreedevi Ravi"
+date: "2/26/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(plyr)
+library(magrittr)
+library(dplyr)
+library(tidyr)
+library(FSA)
+library(FSAdata)
+library(tidyverse)
+library(base) # For levels code
+library(DT) # To create interactive tables
+library(data.table)
+```
+<center>
+<B><font size = 5, color = "red">ALY6000
+<BR>Final Project Report</font>
+<BR><font size = 4><I>Sreedevi Ravi</I>
+<BR>Prof. Dee Chiluiza, PhD
+<BR>Date:02/26/2021<font></b></center>
+
+<P>
+<BR>
+<FONT SIZE=4, COLOR="#8272E9"><B>INTRODUCTION</B></FONT>
+<p>
+Data analytics is crucial for accurate decision-making and predictive analysis. The data is just a collection of numbers until we analyze and gather meaningful insights out of it. We need the right statistical measures at hand to design, visualize and communicate our findings. 
+<BR>Reference:Bluman,A. G. (2017)
+<p>
+<b>General topic:</b>
+<p>
+The dataset provides the global sales figures for the company TargetCorp. The company deals with the sale of furniture, office supplies and technology for consumer, corporate and home-office segments. We have a global market spanning across Africa, Asia Pacific, Europe, LATAM and USCA. As the marketing analyst of the company, I need to identify the profits earned from each category we provide and the global market sales. There are sub-categories under each category which account for a difference in profits. 
+<p>
+<b>Dataset description:</b>
+<br>
+
+The dataset contains 1000 observations of 24 variables. It consists of five numerical variables – Sales,Quantity,Discount,Profit and Shipping Cost. For uniquely identifying each entry there is RowID, OrderID, OrderDate, ShipDate, CustomerID. The Market we focus on are Africa, Asia Pacific, Europe, LATAM and USCA. There are three categories sold by the company – Furniture, Office Supplies and Technology . The categorical variables which are of interest currently are – Region, Market, Segment, Category and ShipMode.
+<p>
+<br>
+<b>Problem Identification:</b>
+<br>1) Steady decrease in number of sale for quantity more than 5 (Fig 3.2)
+<br>2) Africa has the least number of global sales followed by USCA (Sec 4.1)
+<br>3) Segment wise preference for shipping mode needs to be identified(sec 6)
+<br>4) Mean sales per market is lowest for USCA (sec 5.2)
+<p>
+<b>Plan</b>
+<br> I plan to analyze the data in Excel first. This will help me in identifying the categorical variables which affected the profit and sales. 
+<br>After initial identification, statistical analysis will be performed on the numerical variables with R programming. The visualizations will be done in R for better understanding and presentation.
+
+<FONT SIZE=4, COLOR="#8272E9"><B>ANALYSIS</B></FONT>
+<br>
+<B><FONT SIZE=3, COLOR="#982855">
+Task 1
+</FONT></B>
+```{r, include=FALSE}
+library(readr)
+GobalSales  <- read_csv("DataSets/M6_project_dataset.csv", 
+    col_types = cols(PostalCode = col_double(), 
+        Sales = col_number(), Quantity = col_integer(), 
+        Discount = col_number(), Profit = col_number(), 
+        ShippingCost = col_number()))
+ncol(GobalSales)
+```
+
+Observation:
+<br>
+The dataset M6_project_dataset.csv was loaded into Datasets folder.The dataset was renamed as GobalSales while importing. While choosing datatypes,numeric was selected for continuous data and integer for discrete data. 
+<BR>
+<B><FONT SIZE=3, COLOR="#982855">
+Task 2</FONT></B>
+```{r,include=FALSE}
+sales = GobalSales$Sales
+qty = GobalSales$Quantity
+disc = GobalSales$Discount
+profit = GobalSales$Profit
+ship = GobalSales$ShippingCost
+summ_sales = c(mean(sales),median(sales),sd(sales),(max(sales) - min(sales)))
+summ_qty = c(mean(qty),median(qty),sd(qty),(max(qty) - min(qty)))
+summ_disc = c(mean(disc),median(disc),sd(disc),(max(disc) - min(disc)))
+summ_profit = c(mean(profit),median(profit),sd(profit),(max(profit) - min(profit)))
+summ_ship = c(mean(ship),median(ship),sd(ship),(max(ship) - min(ship)))
+summ_matrix = c(summ_sales,summ_qty,summ_disc,summ_profit,summ_ship)
+global_sales_matrix <- matrix(summ_matrix,nrow = 5,byrow = TRUE)
+col = c("Mean","Median","sd","Range")
+row = c("Sales","Quantity","Discount","Profit","Shipping Cost")
+colnames(global_sales_matrix) <- col
+rownames(global_sales_matrix) <- row
+```
+
+```{r}
+datatable(global_sales_matrix)
+```
+<br>Observation:
+<br>The inbuilt R functions were used to calculate mean,median,standard deviation and the range.
+<br>The matrix is a 5X4 matrix with 5 rows and 4 columns.The 5 numerical variables are presented row-wise and their corresponding statistical data is present in the columns.
+<br>Observations based on statistical data:
+<ol>
+  <li>The range for sales is highest(3406.28) among all the 5 numerical variables</li>
+  <li>Statistics for discount is almost symmetric</li>
+  <li>While the mean and median are almost similar for profit,there is a difference of 1897.94 between the maximum and minimum profit</li>
+</ol> 
+<br>
+<br>
+<B><FONT SIZE=3, COLOR="#982855">
+Task 3</FONT></B>
+```{r}
+par(mfcol=c(2,2))
+
+boxplot(sales/100,
+        horizontal = TRUE,
+        las =1,
+        col = c("#A11717", "#2E6DAC"),
+        main = "Fig.3.1.Sales Distributions in hundreds",
+        xlab = "Sales(In hundreds)",
+        ylim = c(0,35))
+
+hist(sales/100,
+     col = terrain.colors(4),
+     main = NA,
+     xlab = "Sales(In hundreds)",
+     ylim = c(0,500),
+     xlim = c(0,35),
+     breaks = 16,
+     las = 1)
+
+boxplot(qty,
+        horizontal = TRUE,
+        las =1,
+        col = c("#A11717", "#2E6DAC"),
+        main = "Fig.3.2.Quantity Distribution",
+        xlab = "Quantity",
+        ylim = c(0,15))
+
+hist(qty,
+     col = terrain.colors(4),
+     main = NA,
+     xlab = "Quantity",
+     xlim = c(0,15),
+     las = 1,
+     breaks = 13)
+```
+<br>Observation:
+<br>Figure 3.1.
+<br>The sales distribution shows that maximum sales happen between 250 - 500.
+<br>There are outliers above 2500.This might be because of products which come under technology which has low sales rate.
+<br>Figure 3.2
+<br>The quantity distribution shows that most of the products have been ordered for a count between 2-5.
+<br>There are around 5 products which has been ordered for a count above 10.
+<br>Nearly 300 products have been ordered for a count of 2
+
+```{r}
+par(mfcol=c(2,2))
+boxplot(disc*100,
+        horizontal = TRUE,
+        las =1,
+        col = c("#A11717", "#2E6DAC"),
+        main = "Fig.3.3.Discount Distribution",
+        xlab = "Discount(in %)",
+        ylim = c(0,80) )
+
+hist(disc*100,
+     col = terrain.colors(4),
+     main = NA,
+     xlab = "Discount(in %)",
+     xlim = c(0,80))
+
+boxplot(profit,
+        horizontal = TRUE,
+        las =1,
+        col = c("#A11717", "#2E6DAC"),
+        main = "Fig.3.4.Profit Distribution",
+        xlab = "Profit",
+        ylim = c(-400,400))
+
+hist(profit,
+     col = terrain.colors(4),
+     main = NA,
+     xlab = "Profits",
+     xlim = c(-400,400))
+```
+<br>Observation:
+<br>Figure 3.3.
+<br>The discount distribution shows that around 600 of the observations have been provided a discount in between 0-10%
+<br>The items with 60% or above discount are negligible(1 per each discount)
+<br>Figure 3.4
+<br>Profit in the range 0-200 is the most occurring
+<br>Below -200 profit and above 200 profit are nearly the same
+
+```{r}
+par(mfcol=c(2,2))
+
+boxplot(ship,
+        horizontal = TRUE,
+        las =1,
+        col = c("#A11717", "#2E6DAC"),
+        main = "Fig.3.5.Shipping Cost Distribution",
+        xlab = "Shipping Cost",
+        ylim = c(20,60))
+
+hist(ship,
+     col = terrain.colors(4),
+     main = NA,
+     xlab = "Shipping Cost",
+     xlim = c(0,60),
+     ylim = c(0,800),
+     breaks = 20)
+```
+<br>Observation:
+<br>Figure 3.5.
+<br>Shipping Cost for approximately 500 of the observations fall in the range of 40-60$
+<br>
+<B><FONT SIZE=3, COLOR="#982855">
+Task 4</FONT></B>
+```{r}
+par(mai = c(1,1,1,1))
+
+market <- table(GobalSales$Market)
+barplot(market,main = "4.1.Market - Global Sales",xlab = "Markets",col = terrain.colors(5),las = 1)
+```
+<br>Observation:
+<br>The sales is falling low in Africa.Only 60 we can observe for Africa
+<br>The Asia Pacific market contributes the most to the total sales(300)
+
+```{r}
+segment <- table(GobalSales$Segment)
+barplot(segment,main = "4.2.Segment - Global Sales",xlab = "Segments",col = terrain.colors(5),ylim = c(0,600),las = 1)
+```
+<br>Observation:
+<br>The home office segment has just 150 share in the total observations
+<br>The consumer segment is contributing the most to our sales(550)
+```{r}
+category <- table(GobalSales$Category)
+barplot(category,main = "4.3.Category - Global Sales",xlab = "Categories",col = terrain.colors(5),las = 1)
+
+```
+<br>Observation:
+<br>Technology is in high demand(350)
+<br>Furniture and office supplies fall short by a factor of 50 each.
+
+<BR>
+<B><FONT SIZE=3, COLOR="#982855">
+Task 5</FONT></B>
+<BR>
+5.1. The quantity sold was the most for which category?
+```{r}
+cat_qty <- tapply(GobalSales$Quantity,GobalSales$Category,sum)
+Category <- table(GobalSales$Category)
+cat_qty1 <- data.frame(Category,cat_qty)
+
+print1 = ggplot(cat_qty1,aes(x=Var1,y=cat_qty)) + geom_bar(stat="identity",width=0.5,fill = "#006699")
+print (print1 + labs(x = "Category",y ="Total quantity",title = "Total quantity sold per category") + theme(plot.title = element_text(hjust = 0.5)))
+
+```
+<BR>
+Observation:
+<BR>Office supplies were sold the most(nearly 1600)
+<BR>Furniture was sold the least(about 1200)
+<BR><BR>
+<BR>
+5.2. Among all the markets we considered,the median(the 50th percentile) is least for which market?
+```{r}
+ggplot(GobalSales,aes(x=GobalSales$Market, y=GobalSales$Sales)) + stat_summary(fun=median, geom="bar",width=0.5,fill = "#006699") + labs(x = "Market",y ="Median Sales",title = "Median Sales per Market") + theme(plot.title = element_text(hjust = 0.5))
+```
+<BR>
+Observation:
+<BR>USCA market shows the least median(50) for sales
+<BR>Europe and Asia Pacific has sales in the range of 400-450
+<BR><BR>
+5.3. Which segment among consumer,corporate and home-office has the least average profit?
+```{r}
+ggplot(GobalSales,aes(x=GobalSales$Segment, y=GobalSales$Profit)) + stat_summary(fun=mean, geom="bar",width=0.5,fill = "#006699") + labs(x = "Segment",y ="Mean of Profit",title = "Mean Profit Per Segment") + theme(plot.title = element_text(hjust = 0.5))
+```
+<BR>
+Observation:
+<BR>From the above bar-plot the following conclusions can be made:
+<BR>1) The mean profit is highest for consumer segment
+<BR>2) The corporate segment and home-office has similar mean-profits
+<BR>
+<BR>
+<B><FONT SIZE=3, COLOR="#982855">
+Task 6</FONT></B>
+<Br> What is the segment wise preference for shipping mode?
+```{r}
+table1 <- table(GobalSales$ShipMode,GobalSales$Segment)
+
+datafr <- as.data.frame(table1)
+
+ggplot(datafr, aes(x=Freq, y=Var1, fill=Var2)) + geom_col()+ xlab("Frequency") + ylab("Shipping Mode") +labs(fill = "Segment")+ geom_text(aes(label = Freq), position = position_stack(vjust= 0.5),
+
+            colour = "Black", size = 2)
+```
+<Br>To answer the above question I plotted the Shipping mode and segment. This will help us to understand the shipping mode preference of the customers belonging to the different segment.
+
+<Br>From the below graph it can be inferred that -
+
+<Br>1. Standard class looks like the default choice for most of the orders.
+
+<Br>2. There is good amount of consumer segment order preferring first class and second-class shipping mode with 117 & 90 respectively.
+
+<Br>3. Same day is the least popular assuming that it has the highest shipping cost.
+
+<Br>4. 305 orders for standard shipping mode were placed by consumer segment which is more than 60% of total orders in that category.
+
+<Br>5. At 62 second class mode and 56 first class shipping mode, corporate segment is second highest in these categories.
+
+<Br>6. From above points it can be inferred that Standard is the most preferred shipping choice for all the 3 segments.
+
+<BR>
+<FONT SIZE=4, COLOR="#8272E9"><B>CONCLUSIONS</B></FONT>
+<P>
+The dataset for globalsales gave an overview of the sales figures for TargetTech.The profit and sales had a wide-range among all the numerical observations.This is due to the fact that the company focuses on three categories-Furniture,Technology and Office-Supplies.This has sub-categories which gives low profit rate. Office-Supplies can be something as small as a pen to a photo-copier. 
+<P>The least is observed in Africa market.While office supplies are sold the most in quantity,the profit is more from technology and the sales is also the most in technology.The discount rate is mostly within 20%.
+<br>Recommendations:
+<br>
+<P>The company needs to focus on its sales in the market of Africa. The technology items needs to be marketed.The products under furniture needs to be given preference as the sales are not in par with other categories
+<P>Pricing and discounts needs to be reconsidered.
+<BR><BR>
+<FONT SIZE=4, COLOR="#8272E9"><B>BIBLIOGRAPHY</B></FONT>
+<P>
+[1]Bluman,A. G. (2017). Elementary statistics: A step by step approach. New York, NY: McGraw-Hill Education.
+<BR>[2]Prof. Dee Chiluiza,PAR function.Rmd
+<BR>[3]Dee, Chiluiza(2021). M6 Final Project Information. Retrieved from Canvas.
+
+
+<FONT SIZE=4, COLOR="#8272E9"><B>APPENDIX</B></FONT>
+<BR>
+An additional R Markdown file containing the R codes has been attached to this report. The name of this file is M6_Final_Project_Ravi.Rmd
+
+
+<P> 
